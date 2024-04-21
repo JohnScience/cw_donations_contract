@@ -36,12 +36,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ContractResult<Binary> {
 mod tests {
     use super::{execute, instantiate, query};
 
-    use cosmwasm_std::{coins, Addr, Coin, Empty};
+    use cosmwasm_std::{coins, Addr, Coin, Empty, StdResult};
     use cw_multi_test::{App, ContractWrapper, Executor};
 
     use crate::{
         msg::{ExecuteMsg, ListDonationsForProjectByPatronResp, ListProjectsResp, QueryMsg},
-        state::DonationTx,
+        state::{DonationTx, Project},
     };
 
     #[test]
@@ -437,5 +437,169 @@ mod tests {
 
         assert_eq!(donations.len(), 1);
         assert_eq!(donations[0], DonationTx(coins(10_020, "eth")));
+    }
+
+    #[test]
+    fn test_list_projects() {
+        let mut app = App::default();
+
+        let code = ContractWrapper::new(execute, instantiate, query);
+        let code_id = app.store_code(Box::new(code));
+
+        let addr = app
+            .instantiate_contract(
+                code_id,
+                Addr::unchecked("owner"),
+                &Empty {},
+                &[],
+                "Donations contract",
+                None,
+            )
+            .unwrap();
+
+        let ListProjectsResp { projects } = app
+            .wrap()
+            .query_wasm_smart(addr.clone(), &QueryMsg::ListProjects {})
+            .unwrap();
+
+        assert!(projects.is_empty());
+
+        app.execute_contract(
+            Addr::unchecked("proj_creator"),
+            addr.clone(),
+            &ExecuteMsg::CreateProject {
+                name: "Project0".to_string(),
+            },
+            &[],
+        )
+        .unwrap();
+
+        let ListProjectsResp { projects } = app
+            .wrap()
+            .query_wasm_smart(addr.clone(), &QueryMsg::ListProjects {})
+            .unwrap();
+
+        assert_eq!(projects.len(), 1);
+        let Project { name, creator } = projects.get(0).unwrap();
+        assert_eq!(name, "Project0");
+        assert_eq!(creator, Addr::unchecked("proj_creator"));
+
+        app.execute_contract(
+            Addr::unchecked("proj_creator"),
+            addr.clone(),
+            &ExecuteMsg::CreateProject {
+                name: "Project1".to_string(),
+            },
+            &[],
+        )
+        .unwrap();
+
+        let ListProjectsResp { projects } = app
+            .wrap()
+            .query_wasm_smart(addr.clone(), &QueryMsg::ListProjects {})
+            .unwrap();
+
+        assert_eq!(projects.len(), 2);
+        let Project { name, creator } = projects.get(1).unwrap();
+        assert_eq!(name, "Project1");
+        assert_eq!(creator, Addr::unchecked("proj_creator"));
+    }
+
+    #[test]
+    fn test_list_donations_for_project_by_patrons() {
+        let mut app = App::default();
+
+        let code = ContractWrapper::new(execute, instantiate, query);
+        let code_id = app.store_code(Box::new(code));
+
+        let contract = app
+            .instantiate_contract(
+                code_id,
+                Addr::unchecked("owner"),
+                &Empty {},
+                &[],
+                "Donations contract",
+                None,
+            )
+            .unwrap();
+
+        let random_person = app.api().addr_make("random_person");
+        let patron = app.api().addr_make("patron");
+
+        app.init_modules(|router, _, storage| {
+            router
+                .bank
+                .init_balance(storage, &patron, coins(12, "eth"))
+                .unwrap();
+        });
+
+        let res: StdResult<ListDonationsForProjectByPatronResp> = app.wrap().query_wasm_smart(
+            contract.clone(),
+            &QueryMsg::ListDonationsForProjectByPatron {
+                // We haven't created any projects yet, so this project_id doesn't exist.
+                project_id: 0,
+                patron: random_person.to_string(),
+            },
+        );
+
+        assert!(res.is_err());
+
+        app.execute_contract(
+            Addr::unchecked("proj_creator"),
+            contract.clone(),
+            &ExecuteMsg::CreateProject {
+                name: "Project0".to_string(),
+            },
+            &[],
+        )
+        .unwrap();
+
+        let ListDonationsForProjectByPatronResp { donations } = app
+            .wrap()
+            .query_wasm_smart(
+                contract.clone(),
+                &QueryMsg::ListDonationsForProjectByPatron {
+                    project_id: 0,
+                    patron: random_person.to_string(),
+                },
+            )
+            .unwrap();
+
+        assert!(donations.is_empty());
+
+        app.execute_contract(
+            patron.clone(),
+            contract.clone(),
+            &ExecuteMsg::Donate { project_id: 0 },
+            &coins(10, "eth"),
+        )
+        .unwrap();
+
+        let ListDonationsForProjectByPatronResp { donations } = app
+            .wrap()
+            .query_wasm_smart(
+                contract.clone(),
+                &QueryMsg::ListDonationsForProjectByPatron {
+                    project_id: 0,
+                    patron: patron.to_string(),
+                },
+            )
+            .unwrap();
+
+        assert_eq!(donations.len(), 1);
+        assert_eq!(donations[0], DonationTx(coins(10, "eth")));
+
+        let ListDonationsForProjectByPatronResp { donations } = app
+            .wrap()
+            .query_wasm_smart(
+                contract.clone(),
+                &QueryMsg::ListDonationsForProjectByPatron {
+                    project_id: 0,
+                    patron: random_person.to_string(),
+                },
+            )
+            .unwrap();
+
+        assert!(donations.is_empty());
     }
 }

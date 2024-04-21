@@ -1,4 +1,4 @@
-use crate::error::ContractResult;
+use crate::error::{ContractResult, NonexistentProjectIdError};
 use crate::msg::{ListDonationsForProjectByPatronResp, ListProjectsResp, QueryMsg};
 use crate::state::{DONATIONS, PROJECTS, PROJECT_COUNT};
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env};
@@ -19,6 +19,10 @@ fn list_donations_for_project_by_patron(
     project_id: u128,
     patron: String,
 ) -> ContractResult<ListDonationsForProjectByPatronResp> {
+    let project_count = PROJECT_COUNT.load(deps.storage)?;
+    if project_id >= project_count {
+        return Err(NonexistentProjectIdError(project_id).into());
+    }
     let patron: Addr = deps.api.addr_validate(&patron)?;
     let donations = DONATIONS
         .may_load(deps.storage, (project_id, patron))?
