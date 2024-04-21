@@ -62,12 +62,10 @@ mod tests {
             )
             .unwrap();
 
-        let resp: ListProjectsResp = app
+        let ListProjectsResp { projects } = app
             .wrap()
             .query_wasm_smart(addr, &QueryMsg::ListProjects {})
             .unwrap();
-
-        let ListProjectsResp { projects } = resp;
 
         assert!(projects.is_empty());
     }
@@ -90,12 +88,10 @@ mod tests {
             )
             .unwrap();
 
-        let resp: ListProjectsResp = app
+        let ListProjectsResp { projects } = app
             .wrap()
             .query_wasm_smart(&addr, &QueryMsg::ListProjects {})
             .unwrap();
-
-        let ListProjectsResp { projects } = resp;
 
         assert!(projects.is_empty());
 
@@ -109,12 +105,10 @@ mod tests {
         )
         .unwrap();
 
-        let resp: ListProjectsResp = app
+        let ListProjectsResp { projects } = app
             .wrap()
             .query_wasm_smart(&addr, &QueryMsg::ListProjects {})
             .unwrap();
-
-        let ListProjectsResp { projects } = resp;
 
         assert_eq!(projects.len(), 1);
     }
