@@ -90,11 +90,7 @@ fn record_donation(deps: &mut DepsMut, info: &MessageInfo, project_id: u128) -> 
         .unwrap_or_default();
 
     donations.push(DonationTx(info.funds.clone()));
-    DONATIONS.save(
-        deps.storage,
-        (project_id as u128, info.sender.clone()),
-        &donations,
-    )?;
+    DONATIONS.save(deps.storage, (project_id, info.sender.clone()), &donations)?;
 
     Ok(())
 }
