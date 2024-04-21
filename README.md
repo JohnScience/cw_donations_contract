@@ -19,3 +19,27 @@
 ## Contract
 
 For tests, see the `tests` module in the [`src/contract.rs`](./src/contract.rs) file.
+
+## Running tests
+
+```console
+cargo test
+```
+
+## Generating the schema
+
+```console
+cargo schema
+```
+
+## Building the contract
+
+```console
+cargo wasm
+```
+
+For better results, see <https://docs.osmosis.zone/cosmwasm/testnet/cosmwasm-deployment/#optimized-compilation>.
+
+## Also see
+
+* ["Deploying Cosmwasm Smart Contract on Local testnet" article on Medium](https://medium.com/@vishalpotpelliwar123/deploying-cosmwasm-smart-contract-on-local-testnet-c6a3d973865c).
