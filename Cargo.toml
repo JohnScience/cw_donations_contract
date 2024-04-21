@@ -1,0 +1,21 @@
+[package]
+name = "donations-contract"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+cosmwasm-schema = "2.0.1"
+cosmwasm-std = { version = "2.0.1", features = ["staking"] }
+cw-storage-plus = "2.0.0"
+cw-utils = "2.0.0"
+serde = { version = "1.0.198", features = ["serde_derive"] }
+serde-cw-value = "0.7.0"
+thiserror = "1.0.58"
+
+[dev-dependencies]
+cw-multi-test = "2.0"
