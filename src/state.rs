@@ -8,7 +8,7 @@ pub struct DonationTx(pub Vec<Coin>);
 #[cw_serde]
 pub struct Project {
     pub name: String,
-    pub(crate) creator: Addr,
+    pub creator: Addr,
 }
 
 impl Project {
