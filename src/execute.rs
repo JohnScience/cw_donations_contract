@@ -1,14 +1,16 @@
-use cosmwasm_std::{Addr, Coin, DepsMut, Env, MessageInfo, Response, StdError, Uint128};
+use cosmwasm_std::{Addr, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
 
 use crate::contract::THRESHOLD;
 use crate::error::ContractResult;
 use crate::msg::ExecuteMsg;
-use crate::state::{DonationTx, Project, AUTHOR, DONATIONS, PROJECTS};
+use crate::state::{DonationTx, Project, AUTHOR, DONATIONS, PROJECTS, PROJECT_COUNT};
 
 pub fn create_project(deps: &mut DepsMut, name: String, creator: Addr) -> ContractResult<()> {
-    let mut projects = PROJECTS.load(deps.storage)?;
-    projects.push(Project::new(name, creator));
-    PROJECTS.save(deps.storage, &projects)?;
+    // TODO: implement the .push() for the structure representing the pair (PROJECTS, PROJECT_COUNT)
+    let project_count = PROJECT_COUNT.load(deps.storage)?;
+    PROJECT_COUNT.save(deps.storage, &(project_count + 1))?;
+
+    PROJECTS.save(deps.storage, project_count, &Project::new(name, creator))?;
 
     Ok(())
 }
@@ -96,10 +98,7 @@ fn record_donation(deps: &mut DepsMut, info: &MessageInfo, project_id: u128) -> 
 }
 
 pub fn donate(deps: &mut DepsMut, info: MessageInfo, project_id: u128) -> ContractResult<Response> {
-    let mut projects = PROJECTS.load(deps.storage)?;
-    let project = projects.get_mut(project_id as usize).ok_or_else(|| {
-        StdError::generic_err(format!("Project with id {} not found", project_id))
-    })?;
+    let project = PROJECTS.load(deps.storage, project_id)?;
 
     record_donation(deps, &info, project_id)?;
 
@@ -107,8 +106,6 @@ pub fn donate(deps: &mut DepsMut, info: MessageInfo, project_id: u128) -> Contra
 
     let resp =
         split_by_recipient(info.funds).into_response(project.creator.clone(), contract_author);
-
-    PROJECTS.save(deps.storage, &projects)?;
 
     Ok(resp)
 }

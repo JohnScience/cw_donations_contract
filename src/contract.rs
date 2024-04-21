@@ -2,7 +2,7 @@ use cosmwasm_std::{Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response};
 
 use crate::error::ContractResult;
 use crate::msg::{ExecuteMsg, QueryMsg};
-use crate::state::{AUTHOR, PROJECTS};
+use crate::state::{AUTHOR, PROJECT_COUNT};
 
 pub const THRESHOLD: u128 = 10_000;
 
@@ -22,7 +22,7 @@ pub fn instantiate(
     info: MessageInfo,
     _msg: Empty,
 ) -> ContractResult<Response> {
-    PROJECTS.save(deps.storage, &Vec::new())?;
+    PROJECT_COUNT.save(deps.storage, &0u128)?;
     AUTHOR.save(deps.storage, &info.sender)?;
     Ok(Response::new())
 }

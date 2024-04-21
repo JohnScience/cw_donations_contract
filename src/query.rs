@@ -1,10 +1,15 @@
 use crate::error::ContractResult;
 use crate::msg::{ListDonationsForProjectByPatronResp, ListProjectsResp, QueryMsg};
-use crate::state::{DONATIONS, PROJECTS};
+use crate::state::{DONATIONS, PROJECTS, PROJECT_COUNT};
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env};
 
 fn list_projects(deps: &Deps) -> ContractResult<ListProjectsResp> {
-    let projects = PROJECTS.load(deps.storage)?;
+    let project_count = PROJECT_COUNT.load(deps.storage)?;
+    let mut projects = vec![];
+    for i in 0..project_count {
+        let project = PROJECTS.load(deps.storage, i)?;
+        projects.push(project);
+    }
     let resp = ListProjectsResp { projects };
     Ok(resp)
 }
