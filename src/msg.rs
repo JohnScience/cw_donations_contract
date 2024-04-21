@@ -1,28 +1,27 @@
 use crate::state::{DonationTx, Project};
-use serde::{Deserialize, Serialize};
+use cosmwasm_schema::{cw_serde, QueryResponses};
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub struct ListProjectsResp {
     pub projects: Vec<Project>,
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub struct ListDonationsForProjectByPatronResp {
     pub donations: Vec<DonationTx>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum ExecuteMsg {
     CreateProject { name: String },
     Donate { project_id: u128 },
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(ListProjectsResp)]
     ListProjects {},
+    #[returns(ListDonationsForProjectByPatronResp)]
     ListDonationsForProjectByPatron { project_id: u128, patron: String },
 }

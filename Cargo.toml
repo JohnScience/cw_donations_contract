@@ -8,6 +8,10 @@ edition = "2021"
 [lib]
 crate-type = ["rlib", "cdylib"]
 
+[[bin]]
+name = "schema"
+path = "bin/schema.rs"
+
 [dependencies]
 cosmwasm-schema = "2.0.1"
 cosmwasm-std = { version = "2.0.1", features = ["staking"] }
@@ -19,3 +23,6 @@ thiserror = "1.0.58"
 
 [dev-dependencies]
 cw-multi-test = "2.0"
+
+[features]
+library = []
