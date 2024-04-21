@@ -65,8 +65,8 @@ mod split_by_recipient {
                 amount: self.for_contract_author,
             };
 
-            std::iter::once(project_creator_msg)
-                .chain(std::iter::once(contract_author_msg))
+            [project_creator_msg, contract_author_msg]
+                .into_iter()
                 .filter(|msg| matches!(msg, BankMsg::Send { amount, .. } if !amount.is_empty()))
         }
 
