@@ -32,13 +32,17 @@ cargo test
 cargo schema
 ```
 
+The command above will generate the `schema` directory with the JSON schema of the contract's API.
+
 ## Building the contract
 
 ```console
 cargo wasm
 ```
 
-For better results, see <https://docs.osmosis.zone/cosmwasm/testnet/cosmwasm-deployment/#optimized-compilation>.
+This will generate, among other things, the `target/wasm32-unknown-unknown/release/donations_contract.wasm` file.
+
+For better optimization, see <https://docs.osmosis.zone/cosmwasm/testnet/cosmwasm-deployment/#optimized-compilation>.
 
 ## Also see
 
